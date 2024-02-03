@@ -1,0 +1,34 @@
+
+#include <ESP8266WiFi.h> #include <ESP8266HTTPClient.h> #include <NewPing.h>
+const char* ssid = "ENTER_WIFI_SSID_HERE";
+const char* password = "ENTER_WIFI_PASSWORD_HERE"; Const char* scriptURL = "ENTER_YOUR_SCRIPT_URL_HERE";
+#define TRIGGER_PIN D1 #define ECHO_PIN D2 #define MAX_DISTANCE 15
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); void setup() {
+Serial.begin(115200); Serial.println("Connecting to WiFi..."); WiFi.begin(ssid, password);
+122
+ while (WiFi.status() != WL_CONNECTED) { delay(1000);
+Serial.print(".");
+}
+Serial.println("\nWiFi connected"); Serial.println("Sensor started");
+}
+void loop() {
+int distance = sonar.ping_cm();
+if (distance <= MAX_DISTANCE) {
+unsigned long startTime = millis(); while (distance <= MAX_DISTANCE) {
+delay(10); // Adjust delay as needed
+distance = sonar.ping_cm(); }
+unsigned long duration = millis() - startTime;
+appendDataToSheet(duration); }
+}
+void appendDataToSheet(unsigned long duration) {
+String url = String(scriptURL) + "?Duration=" + String(duration); WiFiClient client;
+HTTPClient http;
+Serial.println("Sending data to Google Sheets..."); http.begin(client, url);
+int httpResponseCode = http.GET(); if (httpResponseCode == 200) {
+Serial.println("Data appended successfully!");
+123
+
+} else {
+Serial.print("Error appending data. Error code: "); Serial.println(httpResponseCode); Serial.println("Google Sheet connection failure");
+}
+http.end(); }

@@ -1,0 +1,26 @@
+function doGet(e) {
+Logger.log(JSON.stringify(e)); // view parameters var result = 'Ok'; // assume success
+if (Object.keys(e.parameter).length === 0) {
+result = 'No Parameters'; } else {
+var sheet_id = '1A5ag24cJ6zvUEpYjBJgZxJAetfH-ruoEW_EO8kld80Q'; // Spreadsheet ID var sheet = SpreadsheetApp.openById(sheet_id).getActiveSheet(); // get Active sheet
+var newRow = sheet.getLastRow() + 1;
+var rowData = [];
+// Check if 'Duration' is present in the parameters
+if (e.parameter.hasOwnProperty('Duration')) {
+var duration = stripQuotes(e.parameter['Duration']);
+var d = new Date();
+rowData[0] = d.toISOString().slice(0, 10); // Date in column A (formatted as YYYY-MM-DD) rowData[1] = d.toLocaleTimeString(); // Time in column B
+rowData[2] = duration; // Duration in column C
+result = 'Data Written on columns A, B, and C';
+} else {
+result = "unsupported parameter";
+}
+Logger.log(JSON.stringify(rowData));
+// Write new row below
+var newRange = sheet.getRange(newRow, 1, 1, rowData.length); newRange.setValues([rowData]);
+}
+// Return result of operation
+return ContentService.createTextOutput(result); }
+function stripQuotes(value) {
+return value.replace(/^["']|['"]$/g, "");
+}
